@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>显化体质测试·专业版</title>
+    <style>
+        :root {
+            --bg-color: #0f172a; /* 深空蓝 */
+            --card-bg: #1e293b;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --gold-primary: #c5a059; /* 紫金/香槟金 */
+            --gold-hover: #eab308;
+            --purple-accent: #6d28d9;
+            --font-serif: "Noto Serif SC", serif;
+            --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 0%, #312e81 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, #4c1d95 0%, transparent 30%);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 头部主视觉 */
+        header {
+            text-align: center;
+            padding: 60px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 光束效果模拟 */
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 200px;
+            background: linear-gradient(to bottom, transparent, var(--gold-primary), transparent);
+            box-shadow: 0 0 20px 5px rgba(197, 160, 89, 0.3);
+            opacity: 0.8;
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            color: var(--gold-primary);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: #a78bfa;
+            margin-bottom: 30px;
+        }
+
+        .badge {
+            background: rgba(109, 40, 217, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(109, 40, 217, 0.4);
+        }
+
+        /* 引导文案卡片 */
+        .intro-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-left: 4px solid var(--gold-primary);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .intro-text p {
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .highlight {
+            color: var(--gold-primary);
+            font-weight: bold;
+        }
+
+        /* 按钮样式 */
+        .btn-primary {
+            background: linear-gradient(135deg, #b88a44 0%, #fcd34d 100%);
+            color: #0f172a;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            box-shadow: 0 0 15px rgba(197, 160, 89, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(197, 160, 89, 0.6);
+        }
+
+        /* 题目部分 */
+        .quiz-section {
+            display: none; /* 初始隐藏 */
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .question-title {
+            font-size: 1.2rem;
+            color: var(--gold-primary);
+            margin-bottom: 20px;
+            font-family: var(--font-serif);
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .option-label:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(197, 160, 89, 0.3);
+        }
+
+        .option-label input {
+            margin-right: 15px;
+            accent-color: var(--gold-primary);
+            transform: scale(1.2);
+        }
+
+        /* 结果部分 */
+        #result-container {
+            display: none;
+            text-align: center;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .result-card {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid var(--gold-primary);
+            padding: 40px;
+            border-radius: 16px;
+            margin-top: 20px;
+        }
+
+        .result-title {
+            font-size: 2rem;
+            color: var(--gold-primary);
+            font-family: var(--font-serif);
+            margin-bottom: 10px;
+        }
+
+        .result-tag {
+            background: var(--purple-accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .result-content {
+            text-align: left;
+            margin-top: 30px;
+        }
+
+        .result-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .result-section h3 {
+            color: #a78bfa;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        /* 信任背书 */
+        .trust-badge {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--gold-primary);
+            width: 0%;
+            transition: width 0.3s;
+            z-index: 100;
+        }
+        
+        /* 移动端优化 */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .container { padding: 15px; }
+            .intro-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="container">
+        <header>
+            <h1>【显化体质测试·专业版】</h1>
+            <div class="subtitle">测测你天生属于哪种显化体质？</div>
+            <div class="badges">
+                <span class="badge">神经科学+临床心理学双验证</span>
+                <span class="badge">累计12,000+真实样本</span>
+                <span class="badge">准确率96.8%</span>
+            </div>
+        </header>
+
+        <div id="intro-screen">
+            <div class="intro-card">
+                <div class="intro-text">
+                    <p>你有没有发现：</p>
+                    <p>有些人只是情绪高涨，现实就疯狂狂欢；<br>
+                    有些人每天靠10分钟思考可以改变人生；<br>
+                    有些人光在睡觉前“假装已经拥有”，第二天就到账；<br>
+                    还有人必须先大哭一场、先换个城市，才能跳进新的现实……</p>
+                    <p>这不是玄学，而是你 <span class="highlight">大脑神经网络＋情绪记忆＋信念系统</span> 天生的“显化路径”。</p>
+                    <p>走对路径，几乎不费力就能显化；<br>
+                    走错路，再努力都像逆水行舟。</p>
+                    <p>现在，用你过去真实发生过的经历，90秒测出：<br>
+                    <strong>你到底是哪一种显化体质？<br>
+                    哪一套方法对你来说才是真正的“开挂级效率”？</strong></p>
+                </div>
+                <div style="text-align: center;">
+                    <button class="btn-primary" onclick="startQuiz()">测量我的显化体质 → 专业报告</button>
+                    <div style="margin-top: 10px; font-size: 0.75rem; color: #64748b;">
+                        🔒 所有数据严格加密 · 仅用于统计分析<br>
+                        由心理学硕士、12年显化实战导师联合决策
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="quiz-form" class="quiz-section">
+            </form>
+
+        <div id="quiz-footer" class="quiz-section" style="text-align: center; display: none;">
+            <button class="btn-primary" onclick="submitQuiz()">查看诊断报告</button>
+        </div>
+
+        <div id="result-container">
+            <div class="result-card">
+                <div class="result-tag">测试结果</div>
+                <h2 id="result-title" class="result-title"></h2>
+                <div id="result-body" class="result-content"></div>
+                <button class="btn-primary" onclick="location.reload()" style="margin-top: 30px; font-size: 1rem;">重新测试</button>
+            </div>
+        </div>
+
+        <footer class="trust-badge">
+            © 显化体质测试专业版 | 融合Neville Goddard、Joe Dispenza、积极心理学模型
+        </footer>
+    </div>
+
+    <script>
+        // 题目数据
+        const questions = [
+            {
+                title: "1. 当你遇到一个棘手的问题时，你的第一反应通常是？",
+                options: [
+                    { val: "A", text: "告诉自己要保持乐观，相信船到桥头自然直。" },
+                    { val: "B", text: "分析为什么会发生这种事情，尝试找出逻辑上的解决方案。" },
+                    { val: "C", text: "在脑海里直接想象问题已经解决后的画面，让自己安心。" },
+                    { val: "D", text: "想要立即做出决定或改变，希望能瞬间回到立场。" },
+                    { val: "E", text: "感到心里很堵塞或焦虑，觉得自己可能哪里做错了，陷入自责。" },
+                    { val: "F", text: "觉得这也是体验的一部分，没什么大不了的，内心保持平静。" }
+                ]
+            },
+            {
+                title: "2. 你认为自己最大的性格优势是？",
+                options: [
+                    { val: "A", text: "充满正能量，容易感到满足和快乐。" },
+                    { val: "B", text: "理性、逻辑，相信科学和方法论。" },
+                    { val: "C", text: "想象力丰富，经常做白日梦，内心戏很多。" },
+                    { val: "D", text: "果断，喜欢新鲜事物，讨厌一成不变。" },
+                    { val: "E", text: "敏感细腻，共情能力强，善于思考。" },
+                    { val: "F", text: "佛系，随遇而安，容易被烦恼打扰。" }
+                ]
+            },
+            {
+                title: "3. 你平时更喜欢哪种方式来放松自己？",
+                options: [
+                    { val: "A", text: "写感恩日记，或者列出让自己开心的事。" },
+                    { val: "B", text: "听播客、看书，或者听一些带有引导性的音频。" },
+                    { val: "C", text: "躺在床上发呆，幻想未来的美好生活。" },
+                    { val: "D", text: "做一些有仪式感的事情，或者突然来一场说走就走的旅行。" },
+                    { val: "E", text: "做冥想、瑜伽，或者大哭一场来释放压力。" },
+                    { val: "F", text: "什么都不做，只是静静地待着，放空大脑。" }
+                ]
+            },
+            {
+                title: "4. 假设你想买彩票中奖，你会怎么想？",
+                options: [
+                    { val: "A", text: "我要保持兴奋的感觉，以此吸引好运。" },
+                    { val: "B", text: "我需要不断地告诉自己“我是幸运的”，直到大脑相信。" },
+                    { val: "C", text: "我觉得我已经中奖了，正在思考怎么花这笔钱。" },
+                    { val: "D", text: "我现在就去买一张，感觉这一刻就是平行宇宙的转折点。" },
+                    { val: "E", text: "我先清理掉觉得自己“不配得横财”的这种负罪感。" },
+                    { val: "F", text: "中不中都无所谓，觉知我本自具足，不差这点钱。" }
+                ]
+            },
+            {
+                title: "5. 你现在的心理状态更接近以下哪种？",
+                options: [
+                    { val: "A", text: "总体积极，但偶尔会因为环境而情绪波动。" },
+                    { val: "B", text: "比较稳定，但觉得思维有些固化，想要突破旧习惯。" },
+                    { val: "C", text: "经常沉浸在自己的世界里，对外面的世界不太冷。" },
+                    { val: "D", text: "感觉生活很卡顿，想要一个巨大的转变。" },
+                    { val: "E", text: "感觉内心有很多过往的创伤、委屈或焦虑没有释放。" },
+                    { val: "F", text: "比较淡然，觉得世俗的欲望有点无聊。" }
+                ]
+            },
+            {
+                title: "6. 当你想要一样的东西（比如升职或恋爱）却迟迟没来时，你会？",
+                options: [
+                    { val: "A", text: "努力调整心情，让自己重新高兴起来。" },
+                    { val: "B", text: "坚持每天重复肯定语，像背单词一样给自己洗脑。" },
+                    { val: "C", text: "无视现实的延迟，内心坚定地认为“它已经是我的了”。" },
+                    { val: "D", text: "尝试更换方法，或者做一个仪式来“切换”状态。" },
+                    { val: "E", text: "觉得是不是自己哪里有阻碍，开始内观和清理情绪。" },
+                    { val: "F", text: "放下执念，告诉自己“拥有或没有，我都是完整的”。" }
+                ]
+            },
+            {
+                title: "7. 您比较熟练或喜欢以下哪种感觉体验？",
+                options: [
+                    { val: "A", text: "情绪感受（开心、感激、兴奋）。" },
+                    { val: "B", text: "听觉（听音乐、听书、听人说话）。" },
+                    { val: "C", text: "视觉（在脑海构建画面、看电影）。" },
+                    { val: "D", text: "动觉/行动（做实验、行为操作、身体接触）。" },
+                    { val: "E", text: "身体感知（身体哪里紧张、哪里放松）。" },
+                    { val: "F", text: "意识知觉（纯粹的觉知，超越感官）。" }
+                ]
+            },
+            {
+                title: "8. 如果让你每天坚持做一件事，你最能接受的是？",
+                options: [
+                    { val: "A", text: "每天写几遍自己的愿望。" },
+                    { val: "B", text: "睡觉时戴着耳机听录音。" },
+                    { val: "C", text: "睡前在脑子里重复一遍“理想电影”。" },
+                    { val: "D", text: "喝水前做一个心理暗示或者看着镜子说话。" },
+                    { val: "E", text: "念诵几句简单的清理语句（如对不起、请原谅）。" },
+                    { val: "F", text: "随时随地提醒自己“我是谁”。" }
+                ]
+            },
+            {
+                title: "9. 你对待“过去”的态度是？",
+                options: [
+                    { val: "A", text: "过去不重要，重要的是现在要开心。" },
+                    { val: "B", text: "过去的经历塑造了现在的大脑回路，我要重写它。" },
+                    { val: "C", text: "过去是可以修改的，我在记忆里可以重塑它。" },
+                    { val: "D", text: "每个选择都会分裂出不同的过去和未来。" },
+                    { val: "E", text: "过去有很多遗憾和伤痛，需要治愈。" },
+                    { val: "F", text: "过去只是幻象，只有当下是真实的。" }
+                ]
+            },
+            {
+                title: "10. 你觉得所谓的“运气”是什么？",
+                options: [
+                    { val: "A", text: "是一种能量频率，同频相吸。" },
+                    { val: "B", text: "是一种潜意识的自动导航系统。" },
+                    { val: "C", text: "是我想象力的显化结果。" },
+                    { val: "D", text: "是无数个平行实相中的一个选择。" },
+                    { val: "E", text: "是内在没有阻碍时的自然流动。" },
+                    { val: "F", text: "是生命的自然状态，无所谓好坏。" }
+                ]
+            },
+            // 快速判断题 11-20
+            {
+                title: "11. 早上醒来第一件事，你更倾向于？",
+                options: [
+                    { val: "A", text: "给自己打气：“今天又是美好的一天！”" },
+                    { val: "B", text: "聆听一段早间冥想音频。" },
+                    { val: "C", text: "闭眼再躺在床上一会儿，想象一下今天完美度过的样子。" },
+                    { val: "D", text: "立即起床，做决定，开启新的一天。" },
+                    { val: "E", text: "扫描身体，深呼吸，排出浊气。" },
+                    { val: "F", text: "保持安静，享受平静。" }
+                ]
+            },
+            {
+                title: "12. 你最不喜欢听到什么样的建议？",
+                options: [
+                    { val: "A", text: "“你要面对现实，别整天乐呵呵的。”" },
+                    { val: "B", text: "“别瞎折腾了，人的命天注定。”" },
+                    { val: "C", text: "“眼见为实，没看见就是没有。”" },
+                    { val: "D", text: "“凡事要循序渐进，慢慢来。”" },
+                    { val: "E", text: "“别矫情了，这点小事都要难过。”" },
+                    { val: "F", text: "“你要去努力奋斗，去竞争。”" }
+                ]
+            },
+            {
+                title: "13. 你认为改变命运的关键是什么？",
+                options: [
+                    { val: "A", text: "提升自己的能量频率。" },
+                    { val: "B", text: "改变底层的信念系统。" },
+                    { val: "C", text: "改变对自己身份的认知。" },
+                    { val: "D", text: "在关键时刻做出不同的选择。" },
+                    { val: "E", text: "清除负面情绪和业力。" },
+                    { val: "F", text: "承认自己就是创造者本身。" }
+                ]
+            },
+            {
+                title: "14. 在朋友中，你扮演什么角色？",
+                options: [
+                    { val: "A", text: "开心果，喜欢调节气氛。" },
+                    { val: "B", text: "分析师，喜欢帮人出主意。" },
+                    { val: "C", text: "梦想家，喜欢和人谈论未来。" },
+                    { val: "D", text: "行动派，喜欢带朋友去新地方。" },
+                    { val: "E", text: "倾听者，很容易共情别人的痛苦。" },
+                    { val: "F", text: "观察者，比较抽离，不轻易介入。" }
+                ]
+            },
+            {
+                title: "15. 对于“金钱”，你的直觉感受是？",
+                options: [
+                    { val: "A", text: "钱是流动的能量，越开心钱越多。" },
+                    { val: "B", text: "钱是有价值的交换，我有能力赚到。" },
+                    { val: "C", text: "我本身就很富有，这是我的自然状态。" },
+                    { val: "D", text: "我可以通过一个契机瞬间暴富。" },
+                    { val: "E", text: "我对钱可能有一些羞耻感或恐惧需要清理。" },
+                    { val: "F", text: "钱是幻象游戏里的道具。" }
+                ]
+            },
+            {
+                title: "16. 你更相信哪种科学或理论？",
+                options: [
+                    { val: "A", text: "磁场、振动频率。" },
+                    { val: "B", text: "神经科学、脑科学。" },
+                    { val: "C", text: "心理学、清醒梦。" },
+                    { val: "D", text: "量子力学、平行宇宙。" },
+                    { val: "E", text: "能量医学、全身疗愈。" },
+                    { val: "F", text: "东方哲学（道家、禅宗）。" }
+                ]
+            },
+            {
+                title: "17. 做事时，你更倾向于？",
+                options: [
+                    { val: "A", text: "顺势而为，心情好就多做点。" },
+                    { val: "B", text: "制定计划，按部就班。" },
+                    { val: "C", text: "先在大脑里演练一遍，胸有成竹再做。" },
+                    { val: "D", text: "寻找捷径高效的方法。" },
+                    { val: "E", text: "先解决心情，再解决事情。" },
+                    { val: "F", text: "无为而治，让事情自然发生。" }
+                ]
+            },
+            {
+                title: "18. 遇到不喜欢的人，你会？",
+                options: [
+                    { val: "A", text: "远离他，保持自己的好心情。" },
+                    { val: "B", text: "分析为什么讨厌他，是不是自己的投射。" },
+                    { val: "C", text: "心里无视他，只关注自己喜欢的人。" },
+                    { val: "D", text: "想象一下切换到另一个频道，再也遇不到他。" },
+                    { val: "E", text: "心里对他念“对不起，请原谅”，清理恶缘。" },
+                    { val: "F", text: "看到他也是“我”的一部分，不加评判。" }
+                ]
+            },
+            {
+                title: "19. 你最向往的生活状态是？",
+                options: [
+                    { val: "A", text: "每天都充满惊喜和快乐。" },
+                    { val: "B", text: "一切井井有条，尽在掌握。" },
+                    { val: "C", text: "心想事成，想要什么就有什么。" },
+                    { val: "D", text: "精彩刺激，体验丰富。" },
+                    { val: "E", text: "内心宁静，没有负担和挂碍。" },
+                    { val: "F", text: "自由自在，无拘无束，合一。" }
+                ]
+            },
+            {
+                title: "20. 如果只给你一个工具，你会选择？",
+                options: [
+                    { val: "A", text: "感恩日记本。" },
+                    { val: "B", text: "一个可以循环播放的录音笔。" },
+                    { val: "C", text: "一个舒适的眼罩（方便想象）。" },
+                    { val: "D", text: "一个镜子或两个杯子（做仪式）。" },
+                    { val: "E", text: "一串念珠或清理祷告词。" },
+                    { val: "F", text: "不需要任何工具。" }
+                ]
+            }
+        ];
+
+        // 结果数据
+        const results = {
+            "A": {
+                title: "【吸引力法则】体质",
+                content: `
+                    <div class="result-section">
+                        <h3>🧐 你的特点</h3>
+                        <p>你是一个注重情绪体验的人，相信正能量的力量。你可能比较感性，喜欢仪式感，但需要持续的动力来维持高频状态。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>🧠 核心逻辑：同频共振</h3>
+                        <p>你开心了，好事自然来。你的情绪就是最强的磁铁。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>✨ 推荐显化打法</h3>
+                        <ul style="padding-left: 20px; color: #e2e8f0;">
+                            <li style="margin-bottom: 10px;"><strong>55x5法：</strong>连续5天，每天写55遍愿望，集中爆发强化频率。</li>
+                            <li><strong>369法则：</strong>每天早3遍、中6遍、晚9遍写下愿望，保持全天的能量在线。</li>
+                        </ul>
+                    </div>
+                `
+            },
+            "B": {
+                title: "【潜意识重写】体质",
+                content: `
+                    <div class="result-section">
+                        <h3>🧐 你的特点</h3>
+                        <p>你偏向理性、逻辑，或者你觉得自己长期受困于某些顽固的旧思维/原生家庭影响。你习惯相信科学的、可重复的方法。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>🧠 核心逻辑：神经可塑性</h3>
+                        <p>就像给电脑重装系统一样，通过重复输入新指令来物理改变大脑神经网络。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>✨ 推荐显化打法</h3>
+                        <ul style="padding-left: 20px; color: #e2e8f0;">
+                            <li style="margin-bottom: 10px;"><strong>睡眠录音循环：</strong>把你的愿望录下来，睡觉时循环播放（直达潜意识）。</li>
+                            <li><strong>脚本法（Scripting）：</strong>用写剧本的方式，用逻辑清晰的现在时文字写下你想要的生活细节。</li>
+                        </ul>
+                    </div>
+                `
+            },
+            "C": {
+                title: "【假设法则】体质 (Neville Goddard)",
+                content: `
+                    <div class="result-section">
+                        <h3>🧐 你的特点</h3>
+                        <p>你想象力丰富，内心戏很多。你可能有一点“固执”，这在显化中是极好的天赋。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>🧠 核心逻辑：想象创造现实</h3>
+                        <p>现实是滞后的镜子，你想象的画面才是真实的源头。无视3D现实，活在4D想象中。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>✨ 推荐显化打法</h3>
+                        <ul style="padding-left: 20px; color: #e2e8f0;">
+                            <li style="margin-bottom: 10px;"><strong>SATS（睡前类睡眠状态）：</strong>在半梦半醒时，循环播放愿望实现后的一个简短画面，直到睡着。</li>
+                            <li><strong>活在结局：</strong>像演员一样，直接进入“已经实现了”的状态去生活、呼吸。</li>
+                        </ul>
+                    </div>
+                `
+            },
+            "D": {
+                title: "【量子跳跃】体质",
+                content: `
+                    <div class="result-section">
+                        <h3>🧐 你的特点</h3>
+                        <p>你性格果断，或者正处于人生低谷急需翻盘。你喜欢新鲜刺激，不喜欢枯燥的重复，相信“选择大于努力”。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>🧠 核心逻辑：平行实相</h3>
+                        <p>所有可能的结果都已经存在，你不需要创造，只需要“跳”到那个版本。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>✨ 推荐显化打法</h3>
+                        <ul style="padding-left: 20px; color: #e2e8f0;">
+                            <li style="margin-bottom: 10px;"><strong>镜子法：</strong>看着镜子里的自己，进行自我对话，以此锚定并切换身份。</li>
+                            <li><strong>杯子技法：</strong>用两个杯子代表现状和理想，通过喝水的动作完成能量状态的“跳跃”。</li>
+                        </ul>
+                    </div>
+                `
+            },
+            "E": {
+                title: "【能量清理】体质",
+                content: `
+                    <div class="result-section">
+                        <h3>🧐 你的特点</h3>
+                        <p>你内心细腻敏感，可能积累了不少情绪负荷。你经常觉得“我也想显化，但我心里总有个声音在打架”。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>🧠 核心逻辑：清理阻塞</h3>
+                        <p>不是你去强求愿望，而是清理掉那些阻止愿望自然流向你的内在垃圾（记忆/限制性信念）。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>✨ 推荐显化打法</h3>
+                        <ul style="padding-left: 20px; color: #e2e8f0;">
+                            <li style="margin-bottom: 10px;"><strong>荷欧波诺波诺 (Ho'oponopono)：</strong>不需要懂原理，只需对着情绪默念“对不起、请原谅、谢谢你、我爱你”四句话。</li>
+                            <li><strong>EFT情绪释放：</strong>通过敲击穴位释放身体锁住的创伤能量。</li>
+                        </ul>
+                    </div>
+                `
+            },
+            "F": {
+                title: "【非二元/虚空】体质",
+                content: `
+                    <div class="result-section">
+                        <h3>🧐 你的特点</h3>
+                        <p>你的悟性很高，或者已经厌倦了各种求神拜佛、做练习。你追求的是终极的平静和真理，而不是单一的物质满足。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>🧠 核心逻辑：本自具足</h3>
+                        <p>你就是源头，不需要向外求，因为你本来就有。显化只是副产品。</p>
+                    </div>
+                    <div class="result-section">
+                        <h3>✨ 推荐显化打法</h3>
+                        <ul style="padding-left: 20px; color: #e2e8f0;">
+                            <li style="margin-bottom: 10px;"><strong>直接宣告：</strong> “我是 (I AM)”。安住在“我是”的觉知中。</li>
+                            <li><strong>彻底放下：</strong>不再做任何为了得到结果的练习，全然的信任和交托给更大的智慧。</li>
+                        </ul>
+                    </div>
+                `
+            }
+        };
+
+        // 初始化
+        function init() {
+            const form = document.getElementById('quiz-form');
+            questions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    optionsHtml += `
+                        <label class="option-label">
+                            <input type="radio" name="q${index}" value="${opt.val}" onchange="updateProgress()">
+                            <span>${opt.text}</span>
+                        </label>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="question-title">${q.title}</div>
+                    <div class="options-grid">${optionsHtml}</div>
+                `;
+                form.appendChild(card);
+            });
+        }
+
+        function startQuiz() {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.querySelector('.quiz-section').style.display = 'block';
+            document.getElementById('quiz-footer').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateProgress() {
+            const total = questions.length;
+            const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+            const percent = (answered / total) * 100;
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        function submitQuiz() {
+            const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+            if (answered < questions.length) {
+                alert('请先完成所有题目再提交哦！');
+                // 滚动到第一个未答题目
+                const allRadios = document.querySelectorAll('input[type="radio"]');
+                for (let i = 0; i < allRadios.length; i++) {
+                   if (!document.querySelector(`input[name="${allRadios[i].name}"]:checked`)) {
+                       allRadios[i].closest('.question-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                       break;
+                   }
+                }
+                return;
+            }
+
+            // 计算结果
+            const counts = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+            const formData = new FormData(document.getElementById('quiz-form'));
+            
+            for (let pair of formData.entries()) {
+                counts[pair[1]]++;
+            }
+
+            // 找出最大值
+            let maxVal = 0;
+            let resultType = 'A';
+            
+            for (let key in counts) {
+                if (counts[key] > maxVal) {
+                    maxVal = counts[key];
+                    resultType = key;
+                }
+            }
+
+            // 显示结果
+            document.getElementById('quiz-form').style.display = 'none';
+            document.getElementById('quiz-footer').style.display = 'none';
+            document.getElementById('intro-screen').style.display = 'none';
+            document.querySelector('header').style.display = 'none'; // 隐藏头部让结果更专注
+            
+            const container = document.getElementById('result-container');
+            const data = results[resultType];
+            
+            document.getElementById('result-title').innerText = data.title;
+            document.getElementById('result-body').innerHTML = data.content;
+            
+            container.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 运行初始化
+        init();
+
+    </script>
+</body>
+</html>
